@@ -1,0 +1,100 @@
+class CPU:
+    def __init__(self):
+        self.registers = [0] * 8
+        self.registers[7] = 1  # set r7 to 1 for division
+        self.memory = [0] * 1024
+        self.CPI = {"mov": 1, "add": 1, "sub": 1, "mul": 2, "div": 4, "end": 1}
+
+    def mov(self, rd, rs):
+        if rd == 1:
+            self.registers[rd] = rs
+        else:
+            self.registers[rd] = self.registers[rs]
+        return
+
+    def add(self, rd, rs):
+        self.registers[rd] += rs
+        return
+
+    def sub(self, rd, rs):
+        self.registers[rd] -= rs
+        return
+
+    def mul(self, rd, rs):
+        result = self.registers[rd] * rs
+        self.registers[rd] = result 
+        self.registers[7] = (result >> 32) & 0xFFFFFFFF  # store upper 32 bits in r7
+        return
+
+    def div(self, rd, rs):
+        quotient = self.registers[rd] // rs
+        remainder = self.registers[rd] % rs
+        self.registers[rd] = quotient
+        self.registers[7] = remainder
+        return
+
+
+    def end(self):
+        return
+
+    def execute(self, instr):
+        opcode = instr[0]
+        rd = instr[1]
+        rs = instr[2]
+        opcode_bits = format(self.CPI[opcode], '03b')
+        rd_bits = format(rd, '03b')
+        rs_bits = format(rs, '03b')
+        encoded_instr = opcode_bits + rd_bits + rs_bits
+        print(f"Encoded instruction: {encoded_instr}")
+        if opcode == "mov":
+            self.mov(rd, rs)
+        elif opcode == "add":
+            self.add(rd, rs)
+        elif opcode == "sub":
+            self.sub(rd, rs)
+        elif opcode == "mul":
+            self.mul(rd, rs)
+        elif opcode == "div":
+            self.div(rd, rs)
+        elif opcode == "end":
+            self.end()
+
+
+    def run(self, program):
+        for instr in program:
+            self.execute(instr)
+
+cpu = CPU()
+print("Welcome to the CPU simulator.")
+print("You can input instructions in the following format: <opcode> <rd> <rs>")
+print("Where:")
+print("- <opcode> is the operation code (add, sub, mul, div, or mov)")
+print("- <rd> is the destination register (an integer from 0 to 7)")
+print("- <rs> is the source register (an integer from 0 to 7)")
+print("For example: add 1 2")
+print("Enter 'end' to finish the program.")
+
+
+program = []
+while True:
+    instr = input("Enter instruction (or 'end' to finish): ")
+    if instr == "end":
+        program.append(["end", 0, 0])
+        break
+    else:
+        instr_parts = instr.split()
+        opcode = instr_parts[0]
+        rd = int(instr_parts[1])
+        rs = int(instr_parts[2])
+        program.append([opcode, rd, rs])
+
+
+cpu.run(program)
+cpu.run(program)
+print(f"r1: {cpu.registers[1]}")
+print(f"r2: {cpu.registers[2]}")
+print(f"r3: {cpu.registers[3]}")
+print(f"r4: {cpu.registers[4]}")
+print(f"r5: {cpu.registers[5]}")
+print(f"r6: {cpu.registers[6]}")
+print(f"r7: {cpu.registers[7]}")
